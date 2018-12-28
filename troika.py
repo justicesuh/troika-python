@@ -1,4 +1,7 @@
 class Troika(object):
+    NUM_ROUNDS = 24
+    TROIKA_RATE = 243
+
     COLUMNS = 9
     ROWS = 3
     SLICES = 27
@@ -47,8 +50,16 @@ class Troika(object):
     def squeeze(self):
         pass
 
-    def permutation(self):
-        pass
+    def permutation(self, num_rounds):
+        assert(num_rounds <= Troika.NUM_ROUNDS)
+
+        # self.print_state()
+        for round in range(num_rounds):
+            self.sub_trytes()
+            self.shift_rows()
+            self.add_column_parity()
+            self.add_round_constant(round)
+        # self.print_state()
 
     def sub_trytes(self):
         pass
@@ -60,7 +71,24 @@ class Troika(object):
         pass
 
     def add_column_parity(self):
-        pass
+        parity = [0] * (Troika.SLICES * Troika.COLUMNS)
+
+        # compute parity for each column
+        for slice in range(Troika.SLICES):
+            for col in range(Troika.COLUMNS):
+                col_sum = 0
+                for row in range(Troika.ROWS):
+                    col_sum += self.state(Troika.SLICESIZE * slice + Troika.COLUMNS * row + col)
+                parity[Troika.COLUMNS * slice + col] = col_sum % 3
+
+        # add parity
+        for slice in range(Troika.SLICES):
+            for row in range(Troika.ROWS):
+                for col in range(Troika.COLUMNS):
+                    index = Troika.SLICESIZE * slice + Troika.COLUMNS * row + col
+                    sum_to_add = parity[(col - 1 + 9) % 9 + Troika.COLUMNS * slice] + parity[(col + 1) % 9 + Troika.COLUMNS * ((slice + 1) % Troika.SLICES)]
+                    self.state[index] = (self.state[index] + sum_to_add) % 3
+
 
     def add_round_constant(self, round):
         for slice in range(Troika.SLICES):
