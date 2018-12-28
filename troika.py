@@ -62,8 +62,11 @@ class Troika(object):
     def add_column_parity(self):
         pass
 
-    def add_round_constant(self):
-        pass
+    def add_round_constant(self, round):
+        for slice in range(Troika.SLICES):
+            for col in range(Troika.COLUMNS):
+                index = Troika.SLICESIZE * slice + col
+                self.state[index] = (self.state[index] + Troika.ROUND_CONSTANTS[round][slice * Troika.COLUMNS + col]) % 3
 
     def print_slice(self, slice):
         print('#### Slice {} ####'.format(slice))
