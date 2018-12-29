@@ -44,8 +44,30 @@ class Troika(object):
     def __init__(self):
         self.state = [0] * Troika.STATESIZE
 
-    def absorb(self):
-        pass
+    def absorb(self, rate, message, num_rounds):
+        length = len(message)
+
+        while (length >= rate):
+            # copy message block over the state
+            for trit_index in range(rate):
+                self.state[trit_index] = message[trit_index]
+            self.permutation(num_rounds)
+            length -= rate
+            message += rate
+
+        # pad last block
+        last_block = [0] * rate
+
+        # copy over last incomplete message block
+        for trit_index in range(message_length):
+            last_block[trit_index] = message[trit_index]
+
+        # apply padding
+        last_block[message_length - 1] = Troika.PADDING
+
+        # insert last message block
+        for trit_index in range(rate):
+            self.state[trit_index] = last_block[trit_index]
 
     def squeeze(self):
         pass
