@@ -69,8 +69,22 @@ class Troika(object):
         for trit_index in range(rate):
             self.state[trit_index] = last_block[trit_index]
 
-    def squeeze(self):
-        pass
+    def squeeze(self, hash, rate, num_rounds):
+        length = len(hash)
+
+        while length >= rate:
+            self.permutation(num_rounds)
+            # extract rate output
+            for trit_index in range(rate):
+                hash[trit_index] = self.state[trit_index]
+            hash += rate
+            length -= rate
+
+        # check if there is a last incomplete block
+        if length % rate:
+            self.permutation(num_rounds):
+            for trit_index in range(length):
+                hash[trit_index] = self.state[trit_index]
 
     def permutation(self, num_rounds):
         assert(num_rounds <= Troika.NUM_ROUNDS)
