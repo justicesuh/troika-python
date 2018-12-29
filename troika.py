@@ -1,3 +1,6 @@
+from copy import deepcopy
+
+
 class Troika(object):
     NUM_ROUNDS = 24
     TROIKA_RATE = 243
@@ -98,13 +101,39 @@ class Troika(object):
         # self.print_state()
 
     def sub_trytes(self):
-        pass
+        for sbox_index in range(Troika.NUM_SBOXES):
+            sbox_input = 9 * self.state[3 * sbox_index] + 3 * self.state[3 * sbox_index + 1] + self.state[3 * sbox_index + 2]
+            sbox_output = Troika.SBOX_LOOKUP[sbox_input]
+            self.state[3 * sbox_index + 2] = sbox_output % 3
+            sbox_output /= 3
+            self.state[3 * sbox_index + 1] = sbox_output % 3
+            sbox_output /= 3
+            self.state[3 * sbox_index] = sbox_output % 3
 
     def shift_rows(self):
-        pass
+        new_state = [0] * Troika.STATESIZE
+
+        for slice in range(Troika.SLICES):
+            for row in range(Troika.ROWS):
+                for col in range(Troika.COLUMNS):
+                    old_index = Troika.SLICESIZE * slice + Troika.COLUMNS * row + col
+                    new_index = Troika.SLICESIZE * slice + Troika.COLUMNS * row + (col + 3 * Troika.SHIFT_ROWS_PARAM[row]) % 3
+                    new_state[new_index] = self.state[old_index]
+
+        self.state = deepcopy(new_state)
 
     def shift_lanes(self):
-        pass
+        new_state = [0] * Troika.STATESIZE
+
+        for slice in range(Troika.SLICES):
+            for row in range(Troika.ROWS):
+                for col in range(Troika.COLUMNS):
+                    old_index = Troika.SLICESIZE * slice + Troika.COLUMNS * row + col
+                    new_slice = (slice + Troika.SHIFT_LANES_PARAM[col + Troika.COLUMNS * row]) % Troika.SLICES
+                    new_index = Troika.SLICESIZE * new_slice + Troika.COLUMNS * row + col
+                    new_state[new_index] = self.state[old_index]
+
+        self.state = deepcopy(new_state)
 
     def add_column_parity(self):
         parity = [0] * (Troika.SLICES * Troika.COLUMNS)
